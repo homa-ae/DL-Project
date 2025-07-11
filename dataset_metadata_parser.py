@@ -1,8 +1,14 @@
 import pandas as pd
-import re
 
 def infer_dtype(series: pd.Series) -> pd.Series:
-    """ Essaie de convertir une Series pandas en int ou float si possible. """
+    """Convert a pandas.Series to int or float when possible.
+
+    Args:
+        series (pd.Series): raw column
+
+    Returns:
+        pd.Series: formated column
+    """
     # regex int
     if series.str.fullmatch(r'-?\d+').all():
         return series.astype(int)
@@ -12,12 +18,17 @@ def infer_dtype(series: pd.Series) -> pd.Series:
     return series  # sinon on garde str
 
 def parse_pipe(file_path: str) -> pd.DataFrame:
-    """
-    Parse any pipe-separated metadata file with comment-lines en ';' et
-    une ligne d'entête commentée (contenant '|').
+    """Parse pipe-separated (|) metadata files into a formated pandas.DataFrame.
 
-    - file_path : chemin vers le fichier.
-    - Retourne un DataFrame pandas où chaque colonne a été typée si possible.
+    Args:
+        file_path (str): Input raw LibriVox metadata file
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+
+    Returns:
+        pd.DataFrame: formated metadata pandas.DataFrame
     """
     col_names = None
     records = []
@@ -25,35 +36,36 @@ def parse_pipe(file_path: str) -> pd.DataFrame:
     with open(file_path, 'r', encoding='utf-8') as f:
         for raw_line in f:
             line = raw_line.rstrip('\n')
-            # 1) repérer la ligne d'entête (commentée, contenant '|')
+
+            # Detect the header line (commented, containing at least two '|')
             if col_names is None and line.startswith(';') and line.count('|') >= 2:
-                # Ex. ";ID    |READER|MINUTES| SUBSET ... "
+                # e.g. ";ID    |READER|MINUTES| SUBSET ... "
                 header = line.lstrip(';').strip()
                 col_names = [col.strip() for col in header.split('|')]
                 n_cols = len(col_names)
                 continue
 
-            # 2) lignes de données : ni vides, ni commentaires
+            # Skip empty lines or comments (;)
             if not line or line.startswith(';'):
                 continue
 
-            # 3) split avec maxsplit pour ne pas éclater les champs qui contiennent '|'
+            # Split with maxsplit to avoid splitting fields that contain '|' (e.g. " |CBW|Simon")
             parts = line.split('|', n_cols - 1)
             if len(parts) != n_cols:
                 raise ValueError(
-                    f"Ligne mal formée (attendu {n_cols} champs, trouvé {len(parts)}):\n  {line}"
+                    f"Malformed line (expected {n_cols} fields, found {len(parts)}):\n  {line}"
                 )
-            # 4) cleaner chaque champ
+            # Clean each field
             values = [p.strip() for p in parts]
             records.append(dict(zip(col_names, values)))
 
     if col_names is None:
-        raise ValueError("Entête introuvable : pas de ligne commentée contenant '|'")
+        raise ValueError("Header not found: no commented line containing \'|\'")
 
-    # 5) construire le DataFrame
+    # Create the DataFrame
     df = pd.DataFrame.from_records(records, columns=col_names)
 
-    # 6) inférer les types colonne par colonne
+    # Infer column types one by one
     for col in df.columns:
         df[col] = infer_dtype(df[col])
 
