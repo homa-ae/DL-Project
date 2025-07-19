@@ -12,5 +12,6 @@ config = {
     "train_vol": 0.6,       # train+val+test should be 1
     "val_vol": 0.2, 
     "test_vol": 0.2,
-    "segment_duration": 3.0
+    "segment_duration": 3.0,
+    "seed": 1234
 }
