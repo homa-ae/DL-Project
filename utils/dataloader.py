@@ -5,7 +5,7 @@ import random
 import os
 from config import config
 from features.extractors import get_feature_extractor
-from utils import set_seed
+from utils.set_seed import set_seed
 
 class SpeakerDataset(Dataset):
     """
