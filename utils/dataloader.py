@@ -52,6 +52,9 @@ def load_librispeech_subset(subset="train-clean-100", root_name="data"):
     Returns:
         torchaudio.datasets.LIBRISPEECH: The loaded LibriSpeech dataset subset.
     """
+
+    print(f"Loading of {subset} subset...")
+
     # Create root folder if needed
     os.makedirs(f"./{root_name}", exist_ok=True)
 
@@ -60,6 +63,8 @@ def load_librispeech_subset(subset="train-clean-100", root_name="data"):
         url=subset,
         download=not os.path.isdir(f"./{root_name}/LibriSpeech/{subset}") # Load if already downloaded, else download set
     )
+
+    print(f"Loading of {subset} done.")
     return dataset
 
 def prepare_dataset():
@@ -95,20 +100,29 @@ def prepare_dataset():
     X, y = [], [] # X contains audio features, y contains label
     segment_len = int(config["segment_duration"] * config["sample_rate"])
     for spk in selected_speakers:
+        
+        # Consider only the required audio duration
+        max_total_len = int(config["max_length_per_speaker"] * config["sample_rate"])
+        accumulated_len = 0
+
         for waveform in speaker_to_samples[spk]:
+            if accumulated_len >= max_total_len:
+                break
             if waveform.size(1) < segment_len:
                 continue
-            # Cut into frame
             for i in range(0, waveform.size(1) - segment_len + 1, segment_len):
+                if accumulated_len + segment_len > max_total_len:
+                    break
                 segment = waveform[:, i:i+segment_len]
                 # Extract features regarding config.py (mel-spect or MFCC)
-                feature = extractor(segment).squeeze(0)  # (freq, time)
+                feature = extractor(segment).squeeze(0)
                 if config["feature_type"] == "mfcc":
                     feature = feature.unsqueeze(0)  # (1, freq, time)
                 else:
                     feature = feature.unsqueeze(0)  # (1, freq, time)
                 X.append(feature)
                 y.append(speaker_label[spk])
+                accumulated_len += segment_len
 
     # Shuffle and split
     indices = list(range(len(X)))
