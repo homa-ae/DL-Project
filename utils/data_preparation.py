@@ -33,14 +33,18 @@ class SpeakerDataset(Dataset):
             waveform = torch.nn.functional.pad(waveform, (0, padding))
 
         feature = self.extractor(waveform).squeeze(0)
-        feature = feature.unsqueeze(0) # (1, freq, time)
         return feature, self.speaker_to_idx[speaker_id]
+    
+    def get_path(self, idx):
+        return self.file_list[idx][0]
 
 def get_speaker_dirs(root_dir):
     pattern = os.path.join(root_dir, "LibriSpeech", "train-clean-100", "*", "*", "*.flac")
     return glob.glob(pattern)
 
 def prepare_dataset(subset="train-clean-100", root_dir="data"):
+    print(f"Loading of the {subset} subset...")
+
     set_seed(config["seed"])
 
     # Dowload dataset if needed
@@ -105,7 +109,7 @@ def prepare_dataset(subset="train-clean-100", root_dir="data"):
         if len(segments_for_spk) > 0:
             selected_segments.extend(segments_for_spk)
         else:
-            print(f"⚠️ Aucun segment retenu pour le locuteur {spk} (durée totale: {total_duration:.1f}s)")
+            print(f"No segment kept for speaker {spk} (total length: {total_duration:.1f}s)")
 
     # Shuffle & split
     random.shuffle(selected_segments)
@@ -115,6 +119,9 @@ def prepare_dataset(subset="train-clean-100", root_dir="data"):
     train_files = selected_segments[:n_train]
     val_files = selected_segments[n_train:n_train + n_val]
     test_files = selected_segments[n_train + n_val:]
+
+    print(f"Loading of the {subset} subset completed.")
+    print(f"Volumes - Train: {config['train_vol']} | Val: {config['val_vol']} | Test: {config['test_vol']}")
 
     return (
         SpeakerDataset(train_files, speaker_to_idx),
