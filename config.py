@@ -2,7 +2,7 @@ config = {
     "sample_rate": 16000,
     "n_mfcc": 40,
     "n_mels": 64,
-    "feature_type": "mfcc", # or "mel"
+    "feature_type": "mfcc", # "mfcc" or "mel"
     "num_speakers": 10,
     "max_length_per_speaker": 10.0,  # max duration for every speaker in second
     "batch_size": 32,
