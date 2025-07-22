@@ -32,12 +32,15 @@ class SpeakerDataset(Dataset):
             padding = self.segment_len - waveform.size(1)
             waveform = torch.nn.functional.pad(waveform, (0, padding))
 
-        if config["normalize"]:
+        if config["audio_normalize"]:
             max_val = waveform.abs().max()
             if max_val > 0:
                 waveform = waveform / max_val
 
         feature = self.extractor(waveform).squeeze(0)
+        if config["feature_normalize"]:
+            feature = (feature - feature.mean(dim=-1, keepdim=True)) / (feature.std(dim=-1, keepdim=True) + 1e-5)
+
         return feature, self.speaker_to_idx[speaker_id]
     
     def get_path(self, idx):
