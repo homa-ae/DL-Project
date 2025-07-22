@@ -3,8 +3,9 @@ config = {
     "n_mfcc": 40,
     "n_mels": 64,
     "feature_type": "mfcc", # "mfcc" or "mel"
+    "normalize": True,
     "num_speakers": 10,
-    "max_length_per_speaker": 10.0,  # max duration for every speaker in second
+    "max_length_per_speaker": 30.0,  # max duration for every speaker in second
     "batch_size": 32,
     "num_epochs": 20,
     "learning_rate": 1e-3,

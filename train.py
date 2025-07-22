@@ -96,7 +96,7 @@ def main():
               f"F1: {val_metrics['f1']:.4f} | Prec: {val_metrics['precision']:.4f} | "
               f"Reca: {val_metrics['recall']:.4f}")
 
-        # Save best model
+        # Save best model instead of early stopping
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), 'best_cnn_speaker.pth')
