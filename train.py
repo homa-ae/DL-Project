@@ -16,6 +16,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     all_preds = []
     all_labels = []
 
+    # Looping over tqdm for the loading bar
     for features, labels in tqdm(loader, desc="Train", leave=False):
         features = features.unsqueeze(1).to(device)  # add channel dim
         labels = labels.to(device)
@@ -42,7 +43,8 @@ def validate_one_epoch(model, loader, criterion, device):
     all_preds = []
     all_labels = []
 
-    with torch.no_grad():
+    with torch.no_grad(): # Validation set so no weight update and no gradient desent
+        # Looping over tqdm for the loading bar
         for features, labels in tqdm(loader, desc="Val", leave=False):
             features = features.unsqueeze(1).to(device)
             labels = labels.to(device)
@@ -88,9 +90,11 @@ def main():
 
         print(f"Epoch {epoch}/{config['num_epochs']}")
         print(f"  Train Loss: {train_loss:.4f} | Acc: {train_metrics['accuracy']:.4f} | "
-              f"F1: {train_metrics['f1']:.4f}")
+              f"F1: {train_metrics['f1']:.4f} | Prec: {train_metrics['precision']:.4f} | "
+              f"Reca: {train_metrics['recall']:.4f}")
         print(f"  Val   Loss: {val_loss:.4f} | Acc: {val_metrics['accuracy']:.4f} | "
-              f"F1: {val_metrics['f1']:.4f}")
+              f"F1: {val_metrics['f1']:.4f} | Prec: {val_metrics['precision']:.4f} | "
+              f"Reca: {val_metrics['recall']:.4f}")
 
         # Save best model
         if val_loss < best_val_loss:
@@ -99,8 +103,6 @@ def main():
             print("  Best model saved.")
 
     print("Training completed.")
-
-    # You can add testing here if desired
 
 
 if __name__ == '__main__':
