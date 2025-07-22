@@ -32,7 +32,15 @@ class SpeakerDataset(Dataset):
             padding = self.segment_len - waveform.size(1)
             waveform = torch.nn.functional.pad(waveform, (0, padding))
 
+        if config["audio_normalize"]:
+            max_val = waveform.abs().max()
+            if max_val > 0:
+                waveform = waveform / max_val
+
         feature = self.extractor(waveform).squeeze(0)
+        if config["feature_normalize"]:
+            feature = (feature - feature.mean(dim=-1, keepdim=True)) / (feature.std(dim=-1, keepdim=True) + 1e-5)
+
         return feature, self.speaker_to_idx[speaker_id]
     
     def get_path(self, idx):
@@ -95,7 +103,7 @@ def prepare_dataset(subset="train-clean-100", root_dir="data"):
                 waveform = waveform[:, :max_frames]
                 duration = max_frames / config["sample_rate"]
 
-            # Découpe en segments
+            # Split in segment
             num_segments = waveform.shape[1] // segment_len
             for i in range(num_segments):
                 start = i * segment_len
@@ -111,14 +119,27 @@ def prepare_dataset(subset="train-clean-100", root_dir="data"):
         else:
             print(f"No segment kept for speaker {spk} (total length: {total_duration:.1f}s)")
 
-    # Shuffle & split
-    random.shuffle(selected_segments)
-    n_total = len(selected_segments)
-    n_train = int(n_total * config["train_vol"])
-    n_val = int(n_total * config["val_vol"])
-    train_files = selected_segments[:n_train]
-    val_files = selected_segments[n_train:n_train + n_val]
-    test_files = selected_segments[n_train + n_val:]
+    # Equaly split segments into 3 sets
+    train_files, val_files, test_files = [], [], []
+
+    per_speaker_segments = defaultdict(list)
+    for segment in selected_segments:
+        _, _, _, spk = segment
+        per_speaker_segments[spk].append(segment)
+
+    for spk, segments in per_speaker_segments.items():
+        if len(segments) < 3: # If less that 3 segments, imposible to distribute into sets.
+            print(f"[!] Not enought segment for speaker {spk}, ignored.")
+            continue
+
+        random.shuffle(segments)
+        n_total = len(segments)
+        n_train = int(n_total * config["train_vol"])
+        n_val = int(n_total * config["val_vol"])
+
+        train_files.extend(segments[:n_train])
+        val_files.extend(segments[n_train:n_train + n_val])
+        test_files.extend(segments[n_train + n_val:])
 
     print(f"Loading of the {subset} subset completed.")
     print(f"Volumes - Train: {config['train_vol']} | Val: {config['val_vol']} | Test: {config['test_vol']}")

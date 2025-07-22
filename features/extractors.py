@@ -1,4 +1,5 @@
 import torchaudio.transforms as T
+import torch.nn as nn
 from config import config
 
 def get_feature_extractor():
@@ -13,11 +14,14 @@ def get_feature_extractor():
             }
         )
     elif config["feature_type"] == "mel":
-        return T.MelSpectrogram(
-            sample_rate=config["sample_rate"],
-            n_fft=400,
-            hop_length=160,
-            n_mels=config["n_mels"]
+        return nn.Sequential(
+            T.MelSpectrogram(
+                sample_rate=config["sample_rate"],
+                n_fft=400,
+                hop_length=160,
+                n_mels=config["n_mels"]
+            ),
+            T.AmplitudeToDB()
         )
     else:
         raise ValueError("Unknown feature type: " + config["feature_type"])

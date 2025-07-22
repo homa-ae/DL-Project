@@ -2,13 +2,15 @@ config = {
     "sample_rate": 16000,
     "n_mfcc": 40,
     "n_mels": 64,
-    "feature_type": "mfcc", # "mfcc" or "mel"
+    "feature_type": "mel", # "mfcc" or "mel"
+    "audio_normalize": True, 
+    "feature_normalize": False,
     "num_speakers": 10,
-    "max_length_per_speaker": 10.0,  # max duration for every speaker in second
+    "max_length_per_speaker": 60.0,  # max duration for every speaker in second
     "batch_size": 32,
     "num_epochs": 20,
     "learning_rate": 1e-3,
-    "model_type": "cnn",    # or "rnn", "crnn"
+    "model_type": "cnn2",    # or "rnn", "crnn"
     "k_folds": 5,
     "train_vol": 0.6,       # train+val+test should be 1
     "val_vol": 0.2, 
