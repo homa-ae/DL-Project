@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -60,11 +61,13 @@ def validate_one_epoch(model, loader, criterion, device):
     epoch_loss = running_loss / len(loader.dataset)
     metrics = compute_metrics(all_labels, all_preds)
 
-    return epoch_loss, metrics
+    return epoch_loss, metrics, all_labels, all_preds
 
 def train_model(epoch_details=True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
+
+    os.makedirs("models/bests", exist_ok=True)
 
     train_set, val_set, _ = prepare_dataset()
     train_loader = DataLoader(train_set, batch_size=config['batch_size'], shuffle=True)
@@ -98,7 +101,7 @@ def train_model(epoch_details=True):
     # Loop over progression bar
     for epoch in tqdm(range(1, config['num_epochs'] + 1), desc="Training", unit="epoch"):
         train_loss, train_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss, val_metrics = validate_one_epoch(model, val_loader, criterion, device)
+        val_loss, val_metrics, val_labels, val_preds  = validate_one_epoch(model, val_loader, criterion, device)
 
         if epoch_details:
             print(f"Epoch {epoch}/{config['num_epochs']}")
@@ -124,11 +127,13 @@ def train_model(epoch_details=True):
             best_val_loss = val_loss
             best_val_metrics = val_metrics
             best_train_metrics = train_metrics
+            best_val_labels = val_labels
+            best_val_preds = val_preds
             best_model_state = model.state_dict()
-            torch.save(best_model_state, f"best_{config['model_type']}_speaker.pth")
+            torch.save(best_model_state, f"models/bests/best_{config['model_type']}_speaker.pth")
             if epoch_details:
                 print("Best model saved.")
     
     print("Training completed.")
     model.load_state_dict(best_model_state)
-    return model, best_train_metrics, best_val_metrics, history
+    return model, best_train_metrics, best_val_metrics, history, best_val_labels, best_val_preds

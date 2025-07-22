@@ -3,7 +3,6 @@ import re
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
-import numpy as np
 from config import config
 
 
@@ -50,6 +49,7 @@ class Visualizer:
 
         self._finalize_plot(title)
 
+
     def plot_training_history(self, history, metrics=["loss"], title_prefix=""):
         epochs = range(1, len(history["train_loss"]) + 1)
 
@@ -70,3 +70,20 @@ class Visualizer:
                 plt.tight_layout()
 
                 self._finalize_plot(title)
+
+    def plot_confusion_matrix(self, y_true, y_pred, class_names=None, normalize=False, title="Confusion Matrix"):
+        cm = confusion_matrix(y_true, y_pred, normalize='true' if normalize else None)
+
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt=".2f" if normalize else "d", cmap="Blues",
+                    xticklabels=class_names if class_names else "auto",
+                    yticklabels=class_names if class_names else "auto")
+        
+        plt.xlabel("Predicted label")
+        plt.ylabel("True label")
+        if normalize:
+            title += " (Normalized)"
+        plt.title(title)
+        plt.tight_layout()
+
+        self._finalize_plot(title)
