@@ -81,6 +81,20 @@ def train_model(epoch_details=True):
 
     best_val_loss = float('inf')
 
+    # Initialize an history of metrics for further plots
+    history = {
+    "train_loss": [],
+    "val_loss": [],
+    "train_accuracy": [],
+    "val_accuracy": [],
+    "train_f1": [],
+    "val_f1": [],
+    "train_precision": [],
+    "val_precision": [],
+    "train_recall": [],
+    "val_recall": [],
+    }
+
     # Loop over progression bar
     for epoch in tqdm(range(1, config['num_epochs'] + 1), desc="Training", unit="epoch"):
         train_loss, train_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -94,6 +108,17 @@ def train_model(epoch_details=True):
             print(f"  Val   Loss: {val_loss:.4f} | Acc: {val_metrics['accuracy']:.4f} | "
                 f"F1: {val_metrics['f1']:.4f} | Prec: {val_metrics['precision']:.4f} | "
                 f"Reca: {val_metrics['recall']:.4f}")
+        
+        history["train_loss"].append(train_loss)
+        history["val_loss"].append(val_loss)
+        history["train_accuracy"].append(train_metrics["accuracy"])
+        history["val_accuracy"].append(val_metrics["accuracy"])
+        history["train_f1"].append(train_metrics["f1"])
+        history["val_f1"].append(val_metrics["f1"])
+        history["train_precision"].append(train_metrics["precision"])
+        history["val_precision"].append(val_metrics["precision"])
+        history["train_recall"].append(train_metrics["recall"])
+        history["val_recall"].append(val_metrics["recall"])
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -106,6 +131,4 @@ def train_model(epoch_details=True):
     
     print("Training completed.")
     model.load_state_dict(best_model_state)
-    return model, best_train_metrics, best_val_metrics
-
-    return model, train_metrics, val_metrics
+    return model, best_train_metrics, best_val_metrics, history
