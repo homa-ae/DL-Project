@@ -63,13 +63,12 @@ def validate_one_epoch(model, loader, criterion, device):
 
     return epoch_loss, metrics, all_labels, all_preds
 
-def train_model(epoch_details=True):
+def train_model(train_set, val_set, epoch_details=True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
     os.makedirs("models/bests", exist_ok=True)
 
-    train_set, val_set, _ = prepare_dataset()
     train_loader = DataLoader(train_set, batch_size=config['batch_size'], shuffle=True)
     val_loader = DataLoader(val_set, batch_size=config['batch_size'], shuffle=False)
 
