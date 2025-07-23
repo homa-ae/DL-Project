@@ -10,7 +10,7 @@ config = {
     "batch_size": 32,
     "num_epochs": 20,
     "learning_rate": 1e-3,
-    "model_type": "cnn2",    # or "rnn", "crnn"
+    "model_type": "resnet",    # or "rnn", "crnn"
     "k_folds": 5,
     "train_vol": 0.6,       # train+val+test should be 1
     "val_vol": 0.2, 

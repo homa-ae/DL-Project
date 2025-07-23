@@ -1,6 +1,7 @@
 import torchaudio
 import torch.nn
 from torch.utils.data import Dataset
+from sklearn.model_selection import KFold
 from collections import defaultdict
 import random
 import os
@@ -149,3 +150,17 @@ def prepare_dataset(subset="train-clean-100", root_dir="data"):
         SpeakerDataset(val_files, speaker_to_idx),
         SpeakerDataset(test_files, speaker_to_idx)
     )
+
+
+def generate_kfold_dataloaders(k, batch_size):
+    dataset, _, _ = prepare_dataset()
+    kf = KFold(n_splits=k, shuffle=True, random_state=config["seed"])
+
+    folds = []
+    for train_idx, val_idx in kf.split(dataset):
+        train_subset = torch.utils.data.Subset(dataset, train_idx)
+        val_subset = torch.utils.data.Subset(dataset, val_idx)
+
+        folds.append((train_subset, val_subset))
+
+    return folds

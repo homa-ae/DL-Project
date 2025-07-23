@@ -7,3 +7,37 @@ def compute_metrics(y_true, y_pred):
         "recall": recall_score(y_true, y_pred, average='macro', zero_division=0),
         "f1": f1_score(y_true, y_pred, average='macro', zero_division=0),
     }
+
+
+def average_kfold_metrics(fold_metrics):
+    # Initialize
+    keys = fold_metrics[0].keys()
+    averages = {f"avg-{key}": 0.0 for key in keys}
+
+    # Sum for each metrics
+    for metrics in fold_metrics:
+        for key in keys:
+            averages[f"avg-{key}"] += metrics[key]
+
+    # mean
+    num_folds = len(fold_metrics)
+    for key in keys:
+        averages[f"avg-{key}"] /= num_folds
+
+    return averages
+
+
+def average_kfold_history(histories):
+
+    avg_history = {}
+
+    for key in histories[0].keys():
+        all_folds_metric = [hist[key] for hist in histories]
+        epochs = len(all_folds_metric[0])
+
+        avg_history[f"avg-{key}"] = [
+            sum(fold[i] for fold in all_folds_metric) / len(all_folds_metric)
+            for i in range(epochs)
+        ]
+
+    return avg_history
