@@ -12,17 +12,17 @@ def compute_metrics(y_true, y_pred):
 def average_kfold_metrics(fold_metrics):
     # Initialize
     keys = fold_metrics[0].keys()
-    averages = {f"avg-{key}": 0.0 for key in keys}
+    averages = {key: 0.0 for key in keys}
 
     # Sum for each metrics
     for metrics in fold_metrics:
         for key in keys:
-            averages[f"avg-{key}"] += metrics[key]
+            averages[key] += metrics[key]
 
     # mean
     num_folds = len(fold_metrics)
     for key in keys:
-        averages[f"avg-{key}"] /= num_folds
+        averages[key] /= num_folds
 
     return averages
 
@@ -35,7 +35,7 @@ def average_kfold_history(histories):
         all_folds_metric = [hist[key] for hist in histories]
         epochs = len(all_folds_metric[0])
 
-        avg_history[f"avg-{key}"] = [
+        avg_history[key] = [
             sum(fold[i] for fold in all_folds_metric) / len(all_folds_metric)
             for i in range(epochs)
         ]
